@@ -2,6 +2,7 @@ from flask import Flask, render_template, request,jsonify
 from googleapiclient.discovery import build
 from flask_cors import CORS,cross_origin
 import pandas as pd
+import pymongo
 app = Flask(__name__)
 
 @app.route('/', methods=("POST", "GET"))
@@ -41,8 +42,15 @@ def yt_scrapping():
     Video_data = pd.DataFrame(Video_details)
     Video_data = Video_data.set_index([pd.Index([1,2,3,4,5])])
     #Video_data = Video_data.reset_index()
+    client = pymongo.MongoClient("mongodb+srv://sadhana20jarag:1234@cluster0.udydp5r.mongodb.net/?retryWrites=true&w=majority")
+    db = client['ytscrap']
+    coll_pw_eng = db['yt_scrap_pwd']
+    coll_pw_eng.insert_many(Video_details)
     Video_data.to_csv('Video_Details_PW_Foundation.csv')
+    #Video_data.to_csv('Video_Details_PW_Foundation.csv')
     data_final=pd.read_csv('Video_Details_PW_Foundation.csv',index_col=0)
+    records_ = data_final.to_dict(orient = 'records') 
+    result = db.coll_pw_eng.insert_many(records_ ) 
     return render_template('results.html', tables=[data_final.to_html()], titles=[''])
                     
 if __name__ == "__main__":
